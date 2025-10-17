@@ -4,7 +4,6 @@ const ethers = window.ethers;
 
 import { State } from '../state.js';
 import { DOMElements } from '../dom-elements.js';
-// NOVO: Importa a função openModal para exibir instruções no celular
 import { showToast, openModal } from '../ui-feedback.js'; 
 import { 
     addresses, sepoliaRpcUrl, sepoliaChainId,
@@ -51,31 +50,28 @@ export async function initPublicProvider() {
 }
 
 export async function connectWallet(routerCallback) {
-    // NOVO: Detecta se o usuário está em um dispositivo móvel
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-    // LÓGICA ALTERADA: Agora lida com o caso mobile
     if (typeof window.ethereum === 'undefined') {
-        // Se for mobile e a MetaMask não estiver injetada, mostra instruções
         if (isMobile) {
-            const dappUrl = " https://backchain-dapp.vercel.app"; // <-- IMPORTANTE: Coloque seu domínio aqui!
+            // CORREÇÃO: Detecta o domínio atual automaticamente
+            const dappUrl = window.location.hostname;
             const metamaskDeeplink = `https://metamask.app.link/dapp/${dappUrl}`;
             
             openModal(`
                 <div class="text-center">
                     <i class="fa-solid fa-mobile-screen-button text-5xl text-amber-400 mb-4"></i>
-                    <h3 class="text-xl font-bold mb-2">Acesso via Navegador da Carteira</h3>
-                    <p class="text-zinc-400 mb-6">Para conectar sua carteira no celular, por favor, abra este site diretamente no navegador do seu aplicativo MetaMask.</p>
+                    <h3 class="text-xl font-bold mb-2">Wallet Browser Required</h3>
+                    <p class="text-zinc-400 mb-6">To connect on mobile, please open this site directly within your wallet's built-in dApp browser.</p>
                     <a href="${metamaskDeeplink}" class="block w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-md transition-colors">
-                        <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>Tentar Abrir no MetaMask
+                        <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>Try Opening in MetaMask
                     </a>
                 </div>
             `);
             return;
         }
         
-        // Se for desktop, mantém a mensagem de erro original
-        showToast('MetaMask is not installed.', 'error');
+        showToast('MetaMask (or another wallet) is not installed.', 'error');
         return;
     }
     
