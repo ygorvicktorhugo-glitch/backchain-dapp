@@ -4,14 +4,15 @@ const ethers = window.ethers;
 
 import { State } from '../state.js';
 import { DOMElements } from '../dom-elements.js';
-import { showToast } from '../ui-feedback.js';
+// NOVO: Importa a função openModal para exibir instruções no celular
+import { showToast, openModal } from '../ui-feedback.js'; 
 import { 
     addresses, sepoliaRpcUrl, sepoliaChainId,
     bkcTokenABI, delegationManagerABI, rewardManagerABI, 
     rewardBoosterABI, nftBondingCurveABI, actionsManagerABI
 } from '../config.js';
 import { loadPublicData, loadUserData } from './data.js';
-import { formatBigNumber } from '../utils.js'; // Importação do utilitário
+import { formatBigNumber } from '../utils.js';
 
 function updateConnectionStatus(status, message) {
     const statuses = {
@@ -50,7 +51,30 @@ export async function initPublicProvider() {
 }
 
 export async function connectWallet(routerCallback) {
+    // NOVO: Detecta se o usuário está em um dispositivo móvel
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // LÓGICA ALTERADA: Agora lida com o caso mobile
     if (typeof window.ethereum === 'undefined') {
+        // Se for mobile e a MetaMask não estiver injetada, mostra instruções
+        if (isMobile) {
+            const dappUrl = " https://backchain-dapp.vercel.app"; // <-- IMPORTANTE: Coloque seu domínio aqui!
+            const metamaskDeeplink = `https://metamask.app.link/dapp/${dappUrl}`;
+            
+            openModal(`
+                <div class="text-center">
+                    <i class="fa-solid fa-mobile-screen-button text-5xl text-amber-400 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Acesso via Navegador da Carteira</h3>
+                    <p class="text-zinc-400 mb-6">Para conectar sua carteira no celular, por favor, abra este site diretamente no navegador do seu aplicativo MetaMask.</p>
+                    <a href="${metamaskDeeplink}" class="block w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-md transition-colors">
+                        <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i>Tentar Abrir no MetaMask
+                    </a>
+                </div>
+            `);
+            return;
+        }
+        
+        // Se for desktop, mantém a mensagem de erro original
         showToast('MetaMask is not installed.', 'error');
         return;
     }
@@ -82,10 +106,8 @@ export async function connectWallet(routerCallback) {
         
         await loadUserData(); 
         
-        // CORREÇÃO CRÍTICA DO SALDO NO HEADER: 
         if (DOMElements.userBalanceEl) {
              const balanceNum = formatBigNumber(State.currentUserBalance);
-             // Formato US: Vírgula para milhar, ponto para decimal (duas casas)
              DOMElements.userBalanceEl.textContent = `${balanceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $BKC`;
         }
         
@@ -93,7 +115,7 @@ export async function connectWallet(routerCallback) {
         State.isConnected = true;
         showToast('Wallet connected successfully!', 'success');
         
-        routerCallback();
+        if (routerCallback) routerCallback();
 
     } catch (error) {
         console.error('Error connecting wallet:', error);
