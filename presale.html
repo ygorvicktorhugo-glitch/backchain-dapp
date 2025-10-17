@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backchain | Official Presale</title>
+    
+    <meta name="description" content="Backchain is a rebellion against the broken Web3 model. Acquire a power asset at a 50% discount and fund a self-sustaining ecosystem.">
+    <meta property="og:title" content="Backchain | The Rebellion Starts Now">
+    <meta property="og:description" content="Break the rules. Build the future. Join the Web3 revolution.">
+    <meta property="og:image" content="./assets/bkc_logo_3d.png">
+    <meta property="og:url" content="URL_OF_YOUR_SITE_HERE">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script defer src="https://cdn.jsdelivr.net/npm/ethers@6.13.1/dist/ethers.umd.min.js"></script>
+    
+    <link rel="icon" href="./assets/bkc_logo_3d.png" type="image/png">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        :root {
+            --bg-main: #0a0a0a; --bg-darker: #000000; --bg-card: #1a1a1a; --border-color: #2a2a2a; 
+            --text-primary: #f5f5f5; --text-secondary: #a3a3a3; --accent: #f59e0b; --accent-hover: #fbbf24;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-primary); overflow-x: hidden; }
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.1; }
+        .text-gradient { background: linear-gradient(90deg, var(--accent-hover), var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-primary { background: linear-gradient(90deg, var(--accent), var(--accent-hover)); box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); transition: all 0.3s ease-in-out; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-3px) scale(1.05); box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loader { border: 2px solid #fff; border-radius: 50%; border-top: 2px solid var(--accent); width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .fade-in-section { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-in-section.is-visible { opacity: 1; transform: translateY(0); }
+        .nft-card { background: rgba(26, 26, 26, 0.7); backdrop-filter: blur(10px); border: 1px solid var(--border-color); transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; }
+        .nft-card:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 20px 30px rgba(0,0,0,0.4); }
+        .nft-card-image { transition: transform 0.4s ease; }
+        .nft-card:hover .nft-card-image { transform: scale(1.1); }
+        .roadmap-item::before { content: ''; position: absolute; left: -31px; top: 5px; width: 22px; height: 22px; border-radius: 50%; background-color: var(--bg-card); border: 4px solid var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
+        .roadmap-item.is-visible::before { background-color: var(--accent); border-color: var(--accent-hover); }
+        .lang-btn { transition: transform 0.2s ease, opacity 0.2s ease; opacity: 0.6; }
+        .lang-btn.active, .lang-btn:hover { transform: scale(1.15); opacity: 1; }
+        
+        .floating-dapp-btn {
+            position: fixed; bottom: 2rem; left: 2rem; z-index: 50; background: linear-gradient(90deg, #1a1a1a, #0a0a0a);
+            border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.75rem 1.25rem; border-radius: 9999px;
+            display: flex; align-items: center; gap: 0.75rem; font-weight: 700; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: all 0.3s ease; animation: glow 2.5s infinite;
+        }
+        .floating-dapp-btn:hover {
+            transform: translateY(-5px) scale(1.05); background: var(--accent); color: var(--bg-darker);
+            border-color: var(--accent-hover); animation: none;
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.3), 0 0 10px rgba(245, 158, 11, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.7), 0 0 30px rgba(245, 158, 11, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.3), 0 0 10px rgba(245, 158, 11, 0.2); }
+        }
+
+        .quantity-selector { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+        .quantity-btn { background-color: var(--border-color); color: var(--text-primary); width: 32px; height: 32px; border-radius: 50%; font-size: 1.25rem; font-weight: bold; transition: background-color 0.2s; }
+        .quantity-btn:hover { background-color: var(--accent); color: var(--bg-darker); }
+        .quantity-input {
+            background-color: transparent; border: none; color: var(--text-primary); text-align: center;
+            width: 40px; font-size: 1.25rem; font-weight: bold;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .quantity-input::-webkit-outer-spin-button, .quantity-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="antialiased">
+    <canvas id="particle-canvas"></canvas>
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[60] flex flex-col gap-2"></div>
+
+    <a href="./index.html" class="floating-dapp-btn" target="_blank" rel="noopener noreferrer">
+        <i class="fa-solid fa-rocket"></i>
+        <span data-translate="goToDapp">Acessar dApp</span>
+    </a>
+
+    <header class="sticky top-0 z-50 flex justify-between items-center p-4 bg-bg-darker/80 backdrop-blur-sm border-b border-border-color">
+        <a href="#" class="flex items-center gap-3">
+            <img src="./assets/bkc_logo_3d.png" alt="Backchain Logo" class="h-10 w-auto rounded-full">
+            <span class="text-2xl font-bold text-gradient tracking-tighter">Backchain</span>
+        </a>
+        <div class="flex items-center gap-4 sm:gap-6">
+            <div id="language-switcher" class="flex items-center gap-4 text-2xl">
+                <button data-lang="pt" class="lang-btn active" title="Português">🇧🇷</button>
+                <button data-lang="en" class="lang-btn" title="English">🇺🇸</button>
+                <button data-lang="es" class="lang-btn" title="Español">🇪🇸</button>
+            </div>
+            <div>
+                <button id="connectButton" class="btn-primary text-zinc-900 font-bold py-2 px-4 rounded-md">
+                    <i class="fa-solid fa-wallet mr-2"></i><span data-translate="connectWallet">Conectar Carteira</span>
+                </button>
+                <div id="userInfo" class="hidden items-center gap-3">
+                    <span id="walletAddressEl" class="font-mono bg-zinc-900/50 text-zinc-400 text-sm py-2 px-3 rounded-md"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="relative text-center py-24 lg:py-40 px-4 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-bg-darker to-transparent z-0"></div>
+            <div class="relative z-10">
+                <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tighter leading-tight">
+                    <span data-translate="heroTitle1">Quebre as Regras.</span>
+                    <span class="block text-gradient" data-translate="heroTitle2">Construa o Futuro.</span>
+                </h1>
+                <p class="text-lg md:text-xl text-text-secondary max-w-3xl mx-auto mb-10" data-translate="heroSubtitle">
+                    Backchain é uma rebelião contra o sistema falido da Web3. Adquira um <strong>ativo de poder</strong> com 50% de desconto e financie um ecossistema onde 100% dos fundos geram liquidez e crescimento.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                    <a href="#venda" class="w-full sm:w-auto inline-block btn-primary text-zinc-900 font-bold py-4 px-10 rounded-lg text-lg">
+                        <i class="fa-solid fa-tags mr-2"></i> <span data-translate="heroBtn1">Garantir Desconto</span>
+                    </a>
+                    <a href="#ciclo" class="w-full sm:w-auto inline-block bg-transparent border-2 border-border-color hover:bg-bg-card text-text-primary font-bold py-4 px-10 rounded-lg text-lg transition-colors" data-translate="heroBtn2">
+                        Entender o Ecossistema
+                    </a>
+                </div>
+                <div id="countdown-container" class="max-w-xl mx-auto">
+                    <p class="font-bold text-lg mb-4 text-amber-400 animate-pulse" data-translate="countdownTitle">O Lote 1 com 50% OFF acaba em:</p>
+                    <div class="grid grid-cols-4 gap-2 sm:gap-4 text-center font-mono">
+                        <div><div id="days" class="text-4xl sm:text-6xl font-bold bg-black/30 backdrop-blur-sm border border-border-color py-3 rounded-lg">00</div><p class="text-sm text-text-secondary mt-2" data-translate="countdownDays">Dias</p></div>
+                        <div><div id="hours" class="text-4xl sm:text-6xl font-bold bg-black/30 backdrop-blur-sm border border-border-color py-3 rounded-lg">00</div><p class="text-sm text-text-secondary mt-2" data-translate="countdownHours">Horas</p></div>
+                        <div><div id="minutes" class="text-4xl sm:text-6xl font-bold bg-black/30 backdrop-blur-sm border border-border-color py-3 rounded-lg">00</div><p class="text-sm text-text-secondary mt-2" data-translate="countdownMinutes">Minutos</p></div>
+                        <div><div id="seconds" class="text-4xl sm:text-6xl font-bold bg-black/30 backdrop-blur-sm border border-border-color py-3 rounded-lg">00</div><p class="text-sm text-text-secondary mt-2" data-translate="countdownSeconds">Segundos</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ciclo" class="py-20 lg:py-28 px-4 bg-bg-darker fade-in-section">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center mb-16">
+                    <span class="text-sm font-bold text-amber-400 tracking-widest" data-translate="cycleTag">O MOTOR ECONÔMICO</span>
+                    <h2 class="text-4xl md:text-5xl font-bold my-4" data-translate="cycleTitle">O Ciclo de Valor Autossuficiente.</h2>
+                    <p class="text-lg text-text-secondary max-w-3xl mx-auto" data-translate="cycleSubtitle">
+                        Nosso ecossistema é um ciclo fechado onde cada ação gera valor para a comunidade. Simples e poderoso.
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <div class="fade-in-section">
+                        <div class="flex items-center justify-center h-20 w-20 mx-auto rounded-full bg-bg-card border-2 border-border-color text-amber-400 text-3xl font-bold mb-4">1</div>
+                        <h3 class="text-2xl font-bold mb-2" data-translate="cycle1Title">Mineração por Compra</h3>
+                        <p class="text-text-secondary" data-translate="cycle1Desc">Sua participação ativa minera novos tokens, injetando-os diretamente nos pools de recompensa do ecossistema.</p>
+                    </div>
+                    <div class="fade-in-section" style="transition-delay: 200ms;">
+                        <div class="flex items-center justify-center h-20 w-20 mx-auto rounded-full bg-bg-card border-2 border-border-color text-amber-400 text-3xl font-bold mb-4">2</div>
+                        <h3 class="text-2xl font-bold mb-2" data-translate="cycle2Title">Staking Inteligente</h3>
+                        <p class="text-text-secondary" data-translate="cycle2Desc">Faça staking, proteja a rede e reivindique as recompensas geradas pela mineração e por todas as taxas da plataforma.</p>
+                    </div>
+                    <div class="fade-in-section" style="transition-delay: 400ms;">
+                        <div class="flex items-center justify-center h-20 w-20 mx-auto rounded-full bg-bg-card border-2 border-border-color text-amber-400 text-3xl font-bold mb-4">3</div>
+                        <h3 class="text-2xl font-bold mb-2" data-translate="cycle3Title">O NFT: Seu Multiplicador</h3>
+                        <p class="text-text-secondary" data-translate="cycle3Desc">Use seu NFT para <span class="font-bold text-green-400">amplificar a porcentagem de recompensas</span> que você pode reivindicar, acelerando seus ganhos.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-20 lg:py-28 px-4 fade-in-section">
+            <div class="container mx-auto max-w-7xl">
+                <div class="text-center mb-16">
+                     <span class="text-sm font-bold text-cyan-400 tracking-widest" data-translate="powerTag">SEU ATIVO DE PODER</span>
+                    <h2 class="text-4xl md:text-5xl font-bold my-4" data-translate="powerTitle">O NFT como Ativo Estratégico.</h2>
+                    <p class="text-lg text-text-secondary max-w-3xl mx-auto" data-translate="powerSubtitle">Mais que um JPEG. É a chave para maximizar seus resultados, com utilidade real e liquidez garantida.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="p-8 bg-bg-card rounded-lg border border-border-color">
+                        <i class="fa-solid fa-bolt text-4xl text-green-400 mb-5"></i>
+                        <h3 class="text-2xl font-bold mb-3" data-translate="power1Title">Ganhos Exponenciais</h3>
+                        <p class="text-text-secondary" data-translate="power1Desc">Multiplique suas recompensas de Staking e Mineração. Transforme seu NFT em uma máquina de renda passiva.</p>
+                    </div>
+                    <div class="p-8 bg-bg-card rounded-lg border border-border-color">
+                        <i class="fa-solid fa-store text-4xl text-cyan-400 mb-5"></i>
+                        <h3 class="text-2xl font-bold mb-3" data-translate="power2Title">Liquidez Imediata</h3>
+                        <p class="text-text-secondary" data-translate="power2Desc">Negocie seu NFT a qualquer momento em nosso Marketplace e converta-o em tokens $BKC instantaneamente.</p>
+                    </div>
+                     <div class="p-8 bg-bg-card rounded-lg border border-border-color">
+                        <i class="fa-solid fa-gem text-4xl text-purple-400 mb-5"></i>
+                        <h3 class="text-2xl font-bold mb-3" data-translate="power3Title">Escassez Programada</h3>
+                        <p class="text-text-secondary" data-translate="power3Desc">Com um número fixo de Certificados, seu valor intrínseco é projetado para crescer junto com o ecossistema.</p>
+                    </div>
+                    <div class="p-8 bg-bg-card rounded-lg border border-border-color">
+                        <i class="fa-solid fa-hand-fist text-4xl text-amber-400 mb-5"></i>
+                        <h3 class="text-2xl font-bold mb-3" data-translate="power4Title">Financie a Rebelião</h3>
+                        <p class="text-text-secondary" data-translate="power4Desc">100% dos fundos vão para liquidez e marketing, garantindo um lançamento justo, explosivo e livre da influência de VCs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="venda" class="py-20 lg:py-28 px-4 bg-bg-darker fade-in-section">
+            <div class="container mx-auto max-w-7xl">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl md:text-5xl font-bold text-gradient" data-translate="saleTitle">Lote 1: Oportunidade Única de 50% OFF</h2>
+                    <p class="text-lg text-text-secondary mt-4" data-translate="saleSubtitle">Adquira seu Certificado pela metade do preço. Válido até 20 de Novembro ou enquanto durarem os estoques.</p>
+                </div>
+                <div id="marketplace-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8"></div>
+            </div>
+        </section>
+        
+        <section class="py-20 lg:py-28 px-4 fade-in-section">
+            <div class="container mx-auto max-w-4xl">
+                <div class="text-center mb-16">
+                    <span class="text-sm font-bold text-purple-400 tracking-widest" data-translate="roadmapTag">NOSSO PLANO DE VOO</span>
+                    <h2 class="text-4xl md:text-5xl font-bold my-4" data-translate="roadmapTitle">O Futuro é Inevitável.</h2>
+                    <p class="text-lg text-text-secondary max-w-3xl mx-auto" data-translate="roadmapSubtitle">Esta venda é o catalisador. Nosso roadmap é ambicioso, transparente e já está em execução.</p>
+                </div>
+                <div class="relative pl-8 border-l-2 border-border-color">
+                    <div class="mb-12 roadmap-item">
+                        <h3 class="text-2xl font-bold text-amber-400" data-translate="roadmap1Title"><i class="fa-solid fa-check-circle mr-3"></i>Fase 1: Fundação (Concluído)</h3>
+                        <p class="text-text-secondary mt-2" data-translate="roadmap1Desc">Desenvolvimento e auditoria dos smart contracts. Implantação e testes exaustivos na rede de testes.</p>
+                    </div>
+                    <div class="mb-12 roadmap-item">
+                        <h3 class="text-2xl font-bold" data-translate="roadmap2Title"><i class="fa-solid fa-rocket mr-3"></i>Fase 2: Lançamento (Você está aqui)</h3>
+                        <p class="text-text-secondary mt-2" data-translate="roadmap2Desc">Venda estratégica de NFTs para financiar liquidez e marketing. Lançamento oficial do token $BKC e do dApp na Mainnet.</p>
+                    </div>
+                    <div class="mb-12 roadmap-item">
+                        <h3 class="text-2xl font-bold" data-translate="roadmap3Title"><i class="fa-solid fa-satellite-dish mr-3"></i>Fase 3: Expansão</h3>
+                        <p class="text-text-secondary mt-2" data-translate="roadmap3Desc">Lançamento do sistema de Ações Comunitárias. Integração com parceiros e listagens em exchanges de renome.</p>
+                    </div>
+                    <div class="roadmap-item">
+                        <h3 class="text-2xl font-bold" data-translate="roadmap4Title"><i class="fa-solid fa-landmark-flag mr-3"></i>Fase 4: Governança DAO</h3>
+                        <p class="text-text-secondary mt-2" data-translate="roadmap4Desc">Implementação da DAO, entregando o controle do protocolo para a comunidade e alcançando a verdadeira descentralização.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center p-8 border-t border-border-color bg-bg-darker">
+            <p class="text-text-secondary" data-translate="footerText">&copy; 2025 Backchain. A revolução não será centralizada.</p>
+        </footer>
+    </main>
+
+<script>
+(function() {
+    const APP_CONFIG = {
+        // =========================================================================================
+        // ENDEREÇO ATUALIZADO COM BASE NOS SEUS LOGS DE DEPLOY
+        // =========================================================================================
+        saleContractAddress: "0xbD544F8F954Dd7b82B6d0f406a375F80AAD27793", 
+        
+        saleContractABI: [{"inputs":[{"internalType":"address","name":"_nftContractAddress","type":"address"},{"internalType":"address","name":"_initialOwner","type":"address"},{"internalType":"address","name":"_treasury","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"uint256","name":"tierId","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"NFTRescued","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"buyer","type":"address"},{"indexed":true,"internalType":"uint256","name":"tierId","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"price","type":"uint256"}],"name":"NFTSold","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"inputs":[{"internalType":"uint256","name":"_tierId","type":"uint256"}],"name":"buyNFT","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tierId","type":"uint256"},{"internalType":"uint256","name":"_quantity","type":"uint256"}],"name":"buyMultipleNFTs","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"nftContract","outputs":[{"internalType":"contract IERC721","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tierId","type":"uint256"},{"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"rescueNFT","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tierId","type":"uint256"},{"internalType":"uint256","name":"_priceInWei","type":"uint256"},{"internalType":"uint256[]","name":"_tokenIds","type":"uint256[]"}],"name":"setTier","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"tiers","outputs":[{"internalType":"uint256","name":"priceInWei","type":"uint256"},{"internalType":"uint256","name":"nextTokenIndex","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawFunds","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_tierId","type":"uint256"}],"name":"withdrawUnsoldNFTs","outputs":[],"stateMutability":"nonpayable","type":"function"}],
+        countdownDate: "2025-11-20T23:59:59",
+        nftTiers: [
+            { id: 0, name: "Diamond", boost: "+50%", price: "2.00 ETH", discountedPrice: "1.00 ETH", quantity: 20, img: "https://ipfs.io/ipfs/bafybeign2k73pq5pdicg2v2jdgumavw6kjmc4nremdenzvq27ngtcusv5i", color: "text-cyan-400" },
+            { id: 1, name: "Platinum", boost: "+40%", price: "0.80 ETH", discountedPrice: "0.40 ETH", quantity: 30, img: "https://ipfs.io/ipfs/bafybeiag32gp4wssbjbpxjwxewer64fecrtjryhmnhhevgec74p4ltzrau", color: "text-gray-300" },
+            { id: 2, name: "Gold", boost: "+30%", price: "0.30 ETH", discountedPrice: "0.15 ETH", quantity: 80, img: "https://ipfs.io/ipfs/bafybeido6ah36xn4rpzkvl5avicjzf225ndborvx726sjzpzbpvoogntem", color: "text-amber-400" },
+            { id: 3, name: "Silver", boost: "+20%", price: "0.15 ETH", discountedPrice: "0.075 ETH", quantity: 160, img: "https://ipfs.io/ipfs/bafybeiaktaw4op7zrvsiyx2sghphrgm6sej6xw362mxgu326ahljjyu3gu", color: "text-gray-400" },
+            { id: 4, name: "Bronze", boost: "+10%", price: "0.08 ETH", discountedPrice: "0.04 ETH", quantity: 240, img: "https://ipfs.io/ipfs/bafybeifkke3zepb4hjutntcv6vor7t2e4k5oseaur54v5zsectcepgseye", color: "text-yellow-600" }
+        ],
+        translations: {
+            pt: {
+                goToDapp: "Acessar dApp", insufficientFunds: "Fundos insuficientes. Você precisa de mais ETH na rede Sepolia para esta compra.", userRejected: "Transação rejeitada pelo usuário.", soldOut: "Esgotado! A quantidade solicitada não está mais disponível.",
+                connectWallet: "Conectar Carteira", txPending: "Aguardando confirmação...", txSuccess: "Compra realizada com sucesso!", txError: "Erro na transação:", walletAlert: "MetaMask não está instalado.", errorConnecting: "Erro ao conectar carteira:", buyAlert: "Por favor, conecte sua carteira primeiro.", saleContractNotConfigured: "Endereço do contrato de venda não configurado.", invalidQuantity: "Selecione uma quantidade válida.", txRejected: "Transação rejeitada.",
+                heroTitle1: "Quebre as Regras.", heroTitle2: "Construa o Futuro.",
+                heroSubtitle: "Backchain é uma rebelião contra o sistema falido da Web3. Adquira um <strong>ativo de poder</strong> com 50% de desconto e financie um ecossistema onde 100% dos fundos geram liquidez e crescimento.",
+                heroBtn1: "Garantir Desconto", heroBtn2: "Entender o Ecossistema",
+                countdownTitle: "O Lote 1 com 50% OFF acaba em:", countdownDays: "Dias", countdownHours: "Horas", countdownMinutes: "Minutos", countdownSeconds: "Segundos",
+                cycleTag: "O MOTOR ECONÔMICO", cycleTitle: "O Ciclo de Valor Autossuficiente.",
+                cycleSubtitle: "Nosso ecossistema é um ciclo fechado onde cada ação gera valor para a comunidade. Simples e poderoso.",
+                cycle1Title: "Mineração por Compra", cycle1Desc: "Sua participação ativa minera novos tokens, injetando-os diretamente nos pools de recompensa do ecossistema.",
+                cycle2Title: "Staking Inteligente", cycle2Desc: "Faça staking, proteja a rede e reivindique as recompensas geradas pela mineração e por todas as taxas da plataforma.",
+                cycle3Title: "O NFT: Seu Multiplicador", cycle3Desc: "Use seu NFT para <span class='font-bold text-green-400'>amplificar a porcentagem de recompensas</span> que você pode reivindicar, acelerando seus ganhos.",
+                powerTag: "SEU ATIVO DE PODER", powerTitle: "O NFT como Ativo Estratégico.",
+                powerSubtitle: "Mais que um JPEG. É a chave para maximizar seus resultados, com utilidade real e liquidez garantida.",
+                power1Title: "Ganhos Exponenciais", power1Desc: "Multiplique suas recompensas de Staking e Mineração. Transforme seu NFT em uma máquina de renda passiva.",
+                power2Title: "Liquidez Imediata", power2Desc: "Negocie seu NFT a qualquer momento em nosso Marketplace e converta-o em tokens $BKC instantaneamente.",
+                power3Title: "Escassez Programada", power3Desc: "Com um número fixo de Certificados, seu valor intrínseco é projetado para crescer junto com o ecossistema.",
+                power4Title: "Financie a Rebelião", power4Desc: "100% dos fundos vão para liquidez e marketing, garantindo um lançamento justo, explosivo e livre da influência de VCs.",
+                saleTitle: "Lote 1: Oportunidade Única de 50% OFF",
+                saleSubtitle: "Adquira seu Certificado pela metade do preço. Válido até 20 de Novembro ou enquanto durarem os estoques.",
+                roadmapTag: "NOSSO PLANO DE VOO", roadmapTitle: "O Futuro é Inevitável.",
+                roadmapSubtitle: "Esta venda é o catalisador. Nosso roadmap é ambicioso, transparente e já está em execução.",
+                roadmap1Title: "<i class='fa-solid fa-check-circle mr-3'></i>Fase 1: Fundação (Concluído)", roadmap1Desc: "Desenvolvimento e auditoria dos smart contracts. Implantação e testes exaustivos na rede de testes.",
+                roadmap2Title: "<i class='fa-solid fa-rocket mr-3'></i>Fase 2: Lançamento (Você está aqui)", roadmap2Desc: "Venda estratégica de NFTs para financiar liquidez e marketing. Lançamento oficial do token $BKC e do dApp na Mainnet.",
+                roadmap3Title: "<i class='fa-solid fa-satellite-dish mr-3'></i>Fase 3: Expansão", roadmap3Desc: "Lançamento do sistema de Ações Comunitárias. Integração com parceiros e listagens em exchanges de renome.",
+                roadmap4Title: "<i class='fa-solid fa-landmark-flag mr-3'></i>Fase 4: Governança DAO", roadmap4Desc: "Implementação da DAO, entregando o controle do protocolo para a comunidade e alcançando a verdadeira descentralização.",
+                footerText: "&copy; 2025 Backchain. A revolução não será centralizada.",
+                cardRewardEfficiency: "Multiplicador de Recompensa", cardPriceBatch1: "Preço do Lote 1", cardAvailable: "Disponíveis",
+                cardBtnConnect: "Conectar para Adquirir", cardBtnBuy: "Adquirir Agora",
+            },
+            en: { 
+                goToDapp: "Enter dApp", insufficientFunds: "Insufficient funds. You need more ETH on the Sepolia network for this purchase.", userRejected: "Transaction rejected by user.", soldOut: "Sold out! The requested quantity is no longer available.",
+                connectWallet: "Connect Wallet", txPending: "Awaiting confirmation...", txSuccess: "Purchase successful!", txError: "Transaction error:", walletAlert: "MetaMask is not installed.", errorConnecting: "Error connecting wallet:", buyAlert: "Please connect your wallet first.", saleContractNotConfigured: "Sale contract address not configured.", invalidQuantity: "Please select a valid quantity.", txRejected: "Transaction rejected.",
+                cardBtnConnect: "Connect to Buy", cardBtnBuy: "Buy Now",
+                heroTitle1: "Break the Rules.", heroTitle2: "Build the Future.",
+                heroSubtitle: "Backchain is a rebellion against the broken Web3 system. Acquire a <strong>power asset</strong> at a 50% discount and fund an ecosystem where 100% of the funds generate liquidity and growth.",
+                heroBtn1: "Secure Discount", heroBtn2: "Understand the Ecosystem",
+            },
+            es: { 
+                goToDapp: "Acceder al dApp", insufficientFunds: "Fondos insuficientes. Necesitas más ETH en la red Sepolia para esta compra.", userRejected: "Transacción rechazada por el usuario.", soldOut: "¡Agotado! La cantidad solicitada ya no está disponible.",
+                connectWallet: "Conectar Billetera", txPending: "Esperando confirmación...", txSuccess: "¡Compra exitosa!", txError: "Error en la transacción:", walletAlert: "MetaMask no está instalado.", errorConnecting: "Error al conectar la billetera:", buyAlert: "Por favor, conecta tu billetera primero.", saleContractNotConfigured: "Dirección del contrato de venta no configurada.", invalidQuantity: "Seleccione una cantidad válida.", txRejected: "Transacción rechazada.",
+                cardBtnConnect: "Conectar para Comprar", cardBtnBuy: "Comprar Ahora",
+            }
+        }
+    };
+    
+    const appState = { signer: null, userAddress: null, currentLang: 'pt' };
+    const DOMElements = {
+        connectButton: document.getElementById('connectButton'), userInfo: document.getElementById('userInfo'), walletAddressEl: document.getElementById('walletAddressEl'),
+        marketplaceGrid: document.getElementById('marketplace-grid'), languageSwitcher: document.getElementById('language-switcher'), particleCanvas: document.getElementById('particle-canvas'),
+        toastContainer: document.getElementById('toast-container')
+    };
+
+    const showToast = (message, type = 'info', txHash = null) => {
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+        const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-blue-600' };
+        const toast = document.createElement('div');
+        toast.className = `flex items-center gap-3 w-full max-w-xs p-4 text-white rounded-lg shadow-lg transform translate-x-full opacity-0 transition-all duration-300 ease-out ${colors[type]}`;
+        let content = `<i class="fa-solid ${icons[type]}"></i><div class="text-sm font-normal">${message}</div>`;
+        if (txHash) {
+            content += `<a href="https://sepolia.etherscan.io/tx/${txHash}" target="_blank" title="View on Etherscan" class="ml-auto text-lg hover:text-zinc-200"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>`;
+        }
+        toast.innerHTML = content;
+        DOMElements.toastContainer.appendChild(toast);
+        setTimeout(() => { toast.classList.remove('translate-x-full', 'opacity-0'); toast.classList.add('translate-x-0', 'opacity-100'); }, 100);
+        setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 5000); }, 5000);
+    };
+    
+    const setLanguage = (lang) => {
+        appState.currentLang = lang;
+        document.documentElement.lang = lang;
+        const translation = APP_CONFIG.translations[lang] || APP_CONFIG.translations.pt;
+        document.querySelectorAll('[data-translate]').forEach(el => {
+            const key = el.getAttribute('data-translate');
+            if (translation[key]) el.innerHTML = translation[key];
+        });
+        DOMElements.languageSwitcher.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+        document.querySelectorAll('.nft-card').forEach(updateTotalPrice);
+        updateBuyButtonsState(!!appState.signer);
+    };
+
+    const formatAddress = (address) => `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+
+    const updateBuyButtonsState = (isConnected) => {
+        const lang = appState.currentLang;
+        const translation = APP_CONFIG.translations[lang] || APP_CONFIG.translations.pt;
+        document.querySelectorAll('.buy-button').forEach(button => {
+            const card = button.closest('.nft-card');
+            if (card.classList.contains('sold-out')) return;
+            button.disabled = !isConnected;
+            if (!isConnected) {
+                button.innerHTML = translation.cardBtnConnect;
+            } else {
+                updateTotalPrice(card);
+            }
+        });
+    };
+    
+    const updateUIOnConnect = () => {
+        DOMElements.connectButton.classList.add('hidden');
+        DOMElements.userInfo.classList.remove('hidden');
+        DOMElements.userInfo.classList.add('flex');
+        DOMElements.walletAddressEl.textContent = formatAddress(appState.userAddress);
+        updateBuyButtonsState(true);
+    };
+
+    const connectWallet = async () => {
+        const lang = appState.currentLang;
+        const translations = APP_CONFIG.translations[lang] || APP_CONFIG.translations.pt;
+        if (typeof window.ethereum === 'undefined') { return alert(translations.walletAlert); }
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            appState.signer = await provider.getSigner();
+            appState.userAddress = await appState.signer.getAddress();
+            updateUIOnConnect();
+        } catch (error) { console.error(translations.errorConnecting, error); }
+    };
+    
+    const handleBuyNFT = async (button) => {
+        const lang = appState.currentLang;
+        const translations = APP_CONFIG.translations[lang] || APP_CONFIG.translations.pt;
+        if (!appState.signer) { return showToast(translations.buyAlert, 'error'); }
+        if (!APP_CONFIG.saleContractAddress || APP_CONFIG.saleContractAddress.includes("...")) { return showToast(translations.saleContractNotConfigured, 'error'); }
+
+        const card = button.closest('.nft-card');
+        const quantityInput = card.querySelector('.quantity-input');
+        const quantity = parseInt(quantityInput.value, 10);
+        
+        if (isNaN(quantity) || quantity <= 0) { return showToast(translations.invalidQuantity, 'error'); }
+
+        const tierId = button.dataset.tierId;
+        const priceString = button.dataset.price;
+        const originalButtonHTML = button.innerHTML;
+
+        try {
+            button.disabled = true;
+            button.innerHTML = `<span class="loader"></span> ${translations.txPending}`;
+            
+            const pricePerItem = ethers.parseEther(priceString.split(" ")[0]);
+            const totalPrice = pricePerItem * BigInt(quantity);
+
+            const saleContract = new ethers.Contract(APP_CONFIG.saleContractAddress, APP_CONFIG.saleContractABI, appState.signer);
+            
+            const tx = await saleContract.buyMultipleNFTs(tierId, quantity, { value: totalPrice });
+            
+            showToast(translations.txPending, 'info');
+            const receipt = await tx.wait();
+            showToast(translations.txSuccess, 'success', receipt.hash);
+        } catch (error) {
+            console.error(error);
+            let errorMessage;
+            if (error.code === 'INSUFFICIENT_FUNDS') {
+                errorMessage = translations.insufficientFunds;
+            } else if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+                errorMessage = translations.userRejected;
+            } else if (error.reason && (error.reason.includes("excede o estoque") || error.reason.includes("exceeds stock"))) {
+                errorMessage = translations.soldOut;
+            } else {
+                errorMessage = error.reason || translations.txRejected;
+            }
+            showToast(`${translations.txError} ${errorMessage}`, 'error');
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalButtonHTML;
+        }
+    };
+    
+    const updateTotalPrice = (card) => {
+        const quantityInput = card.querySelector('.quantity-input');
+        const buyButton = card.querySelector('.buy-button');
+        if (!buyButton || !quantityInput) return;
+
+        const priceString = buyButton.dataset.price;
+        const quantity = parseInt(quantityInput.value, 10);
+        if (isNaN(quantity) || quantity <= 0) return;
+
+        const pricePerItem = parseFloat(priceString.split(" ")[0]);
+        const totalPrice = (pricePerItem * quantity).toFixed(4).replace(/\.0+$/, '');
+
+        const lang = appState.currentLang;
+        const buyText = (APP_CONFIG.translations[lang] || APP_CONFIG.translations.pt).cardBtnBuy || "Adquirir Agora";
+        
+        if (appState.signer) {
+            buyButton.innerHTML = `<i class='fa-solid fa-cart-shopping mr-2'></i>${buyText} (${totalPrice} ETH)`;
+        }
+    };
+
+    const renderMarketplace = () => {
+        DOMElements.marketplaceGrid.innerHTML = APP_CONFIG.nftTiers.map(tier => `
+            <div class="bg-bg-card border border-border-color rounded-xl p-4 flex flex-col items-center nft-card group" data-tier-id="${tier.id}">
+                <div class="w-full aspect-square overflow-hidden rounded-lg mb-4 bg-bg-darker"><img src="${tier.img}" alt="${tier.name}" class="w-full h-full object-contain nft-card-image"/></div>
+                <h3 class="text-xl font-bold ${tier.color}">${tier.name}</h3>
+                <p class="text-2xl font-bold text-green-400">${tier.boost}</p>
+                <p class="text-sm text-text-secondary mb-2" data-translate="cardRewardEfficiency"></p>
+                <div class="w-full bg-bg-main p-3 rounded-lg text-center my-2">
+                    <p class="text-xs text-text-secondary" data-translate="cardPriceBatch1"></p>
+                    <div class="flex items-center justify-center gap-2"><p class="text-sm text-text-secondary line-through">${tier.price}</p><p class="font-bold text-xl text-green-400">${tier.discountedPrice}</p></div>
+                </div>
+                <div class="my-3 w-full">
+                    <div class="quantity-selector">
+                        <button class="quantity-btn quantity-minus">-</button>
+                        <input type="number" class="quantity-input" value="1" min="1" max="${tier.quantity}">
+                        <button class="quantity-btn quantity-plus">+</button>
+                    </div>
+                </div>
+                <p class="text-sm text-text-secondary mb-3"><span data-translate="cardAvailable"></span>: <span class="font-bold available-count">${tier.quantity}</span></p>
+                <button class="w-full btn-primary text-zinc-900 font-bold py-2.5 px-4 rounded-md buy-button" disabled data-translate="cardBtnConnect" data-tier-id="${tier.id}" data-price="${tier.discountedPrice}">Conectar para Adquirir</button>
+            </div>
+        `).join('');
+
+        document.querySelectorAll('.nft-card').forEach(card => {
+            const minusBtn = card.querySelector('.quantity-minus');
+            const plusBtn = card.querySelector('.quantity-plus');
+            const input = card.querySelector('.quantity-input');
+            const max = parseInt(input.max, 10);
+            minusBtn.addEventListener('click', () => { let val = parseInt(input.value); if (val > 1) { input.value = val - 1; updateTotalPrice(card); } });
+            plusBtn.addEventListener('click', () => { let val = parseInt(input.value); if (val < max) { input.value = val + 1; updateTotalPrice(card); } });
+            input.addEventListener('input', () => { let val = parseInt(input.value); if (isNaN(val) || val < 1) input.value = 1; if (val > max) input.value = max; updateTotalPrice(card); });
+        });
+        document.querySelectorAll('.buy-button').forEach(button => { button.addEventListener('click', () => handleBuyNFT(button)); });
+    };
+    
+    const setupCountdown = () => {
+        const countdownDate = new Date(APP_CONFIG.countdownDate).getTime();
+        const interval = setInterval(() => {
+            const now = new Date().getTime(); const distance = countdownDate - now;
+            if (distance < 0) { clearInterval(interval); document.getElementById('countdown-container').innerHTML = `<p class="text-2xl font-bold text-red-500">OFERTA ENCERRADA!</p>`; return; }
+            const d = String(Math.floor(distance / 86400000)).padStart(2, '0');
+            const h = String(Math.floor((distance % 86400000) / 3600000)).padStart(2, '0');
+            const m = String(Math.floor((distance % 3600000) / 60000)).padStart(2, '0');
+            const s = String(Math.floor((distance % 60000) / 1000)).padStart(2, '0');
+            document.getElementById('days').textContent = d; document.getElementById('hours').textContent = h;
+            document.getElementById('minutes').textContent = m; document.getElementById('seconds').textContent = s;
+        }, 1000);
+    };
+
+    const setupScrollAnimations = () => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('is-visible'); observer.unobserve(entry.target); } });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.fade-in-section, .roadmap-item').forEach(section => observer.observe(section));
+    };
+
+    const particleAnimation = {
+        ctx: null, particles: [],
+        init() { const canvas = DOMElements.particleCanvas; if (!canvas) return; this.ctx = canvas.getContext('2d'); this.setupCanvas(); this.createParticles(); this.animate(); },
+        setupCanvas() { DOMElements.particleCanvas.width = window.innerWidth; DOMElements.particleCanvas.height = window.innerHeight; window.addEventListener('resize', () => { DOMElements.particleCanvas.width = window.innerWidth; DOMElements.particleCanvas.height = window.innerHeight; this.createParticles(); }); },
+        createParticles() {
+            this.particles = []; const num = (DOMElements.particleCanvas.height * DOMElements.particleCanvas.width) / 9000;
+            for (let i = 0; i < num; i++) { const size = (Math.random() * 1.5) + 0.5; const x = Math.random() * (DOMElements.particleCanvas.width - size * 2) + size * 2; const y = Math.random() * (DOMElements.particleCanvas.height - size * 2) + size * 2; const dX = (Math.random() * .4) - .2; const dY = (Math.random() * .4) - .2; this.particles.push({x, y, dX, dY, size}); }
+        },
+        animate() {
+            if (!this.ctx) return; requestAnimationFrame(() => this.animate()); this.ctx.clearRect(0, 0, DOMElements.particleCanvas.width, DOMElements.particleCanvas.height);
+            this.particles.forEach(p => { if (p.x > DOMElements.particleCanvas.width || p.x < 0) p.dX = -p.dX; if (p.y > DOMElements.particleCanvas.height || p.y < 0) p.dY = -p.dY; p.x += p.dX; p.y += p.dY; this.ctx.beginPath(); this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); this.ctx.fillStyle = 'rgba(245, 158, 11, 0.5)'; this.ctx.fill(); });
+        }
+    };
+
+    const setupEventListeners = () => {
+        DOMElements.connectButton.addEventListener('click', connectWallet);
+        DOMElements.languageSwitcher.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => setLanguage(e.target.dataset.lang));
+        });
+    };
+
+    const init = () => {
+        renderMarketplace();
+        setLanguage('pt'); // Mantém o português como padrão inicial
+        setupEventListeners();
+        setupCountdown();
+        setupScrollAnimations();
+        particleAnimation.init();
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+
+</body>
+</html>

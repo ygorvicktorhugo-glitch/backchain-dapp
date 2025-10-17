@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backchain | Dashboard</title>
+    
+    <link rel="icon" href="./assets/bkc_logo_3d.png" type="image/png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/ethers@6.4.0/dist/ethers.umd.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        :root {
+            --bg-main: #18181b; --bg-sidebar: #27272a; --bg-card: #3f3f46; --border-color: #52525b; --text-primary: #f4f4f5; --text-secondary: #a1a1aa; --accent: #f59e0b; --accent-hover: #d97706;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-primary); }
+        .sidebar-link.active { background-color: var(--accent); color: var(--bg-main); font-weight: 600; }
+        .btn-disabled { background-color: #3f3f46 !important; color: #71717a !important; cursor: not-allowed !important; }
+        .loader { border: 2px solid var(--border-color); border-radius: 50%; border-top: 2px solid var(--accent); width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .form-input {
+            background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 0.375rem; padding: 0.75rem 1rem; color: var(--text-primary); width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+        }
+        .form-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-sidebar); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--bg-card); }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;
+        }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .pagination-btn { height: 36px; width: 36px; display: inline-flex; align-items: center; justify-content: center; background-color: var(--bg-card); border-radius: 0.375rem; transition: background-color 0.2s; }
+        .pagination-btn:hover { background-color: #52525b; }
+        .pagination-btn:disabled { background-color: #27272a; color: #52525b; cursor: not-allowed; }
+        .pagination-page-num { height: 36px; padding: 0 1rem; display: inline-flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 500; }
+
+        .nft-clickable-image {
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .nft-clickable-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[60] flex flex-col gap-2"></div>
+
+    <div class="relative min-h-screen lg:flex">
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
+
+        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-full bg-sidebar p-4 flex flex-col transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0">
+            <div class="flex items-center gap-3 px-2 mb-8">
+                <img src="./assets/bkc_logo_3d.png" alt="Backchain Logo" class="h-10 w-auto rounded-full">
+                <span class="text-2xl font-bold text-amber-400">Backchain</span>
+            </div>
+            <nav id="nav-links" class="flex flex-col flex-1">
+                <div class="space-y-2">
+                    <a data-target="dashboard" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors hover:bg-zinc-700 active">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i><span>Dashboard</span>
+                    </a>
+                    <a data-target="earn" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors text-zinc-400 hover:text-white hover:bg-zinc-700">
+                        <i class="fa-solid fa-coins w-5 text-center"></i><span>Earn</span>
+                    </a>
+                    <a data-target="store" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors text-zinc-400 hover:text-white hover:bg-zinc-700">
+                        <i class="fa-solid fa-store w-5 text-center"></i><span>Booster Store</span>
+                    </a>
+                    <a data-target="rewards" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors text-zinc-400 hover:text-white hover:bg-zinc-700">
+                        <i class="fa-solid fa-id-card-clip w-5 text-center"></i><span>My Rewards</span>
+                    </a>
+                     <a data-target="actions" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors text-zinc-400 hover:text-white hover:bg-zinc-700">
+                        <i class="fa-solid fa-dice w-5 text-center"></i><span>Decentralized Actions </span>
+                    </a>
+                </div>
+                
+                <div class="mt-auto pt-4 border-t border-zinc-700 space-y-2">
+                    <a data-target="about" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors text-zinc-400 hover:text-white hover:bg-zinc-700">
+                        <i class="fa-solid fa-circle-info w-5 text-center"></i><span>About the Project</span>
+                    </a>
+                    <a href="#" id="shareProjectBtn" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors text-zinc-400 hover:text-white hover:bg-zinc-700">
+                        <i class="fa-solid fa-share-nodes w-5 text-center"></i><span>Share Project</span>
+                    </a>
+                    <a href="./presale.html" target="_blank" rel="noopener noreferrer" class="sidebar-link flex items-center gap-4 py-2.5 px-4 rounded-lg transition-colors text-amber-400 hover:text-amber-300 hover:bg-zinc-700">
+                        <i class="fa-solid fa-tags w-5 text-center"></i><span>NFT Presale</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <div class="lg:ml-64 flex-1 flex flex-col min-h-screen">
+            <header class="sticky top-0 z-20 flex justify-between items-center p-4 bg-sidebar/80 backdrop-blur-sm border-b border-border-color">
+                <button id="menu-btn" class="lg:hidden text-xl text-zinc-400 hover:text-white h-10 w-10">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div id="connectionStatus" class="hidden sm:inline-flex items-center gap-2 py-1.5 px-3 rounded-full text-sm font-medium bg-red-500/20 text-red-400">
+                    <i class="fa-solid fa-circle text-xs"></i>
+                    <span>Disconnected</span>
+                </div>
+                <div>
+                    <button id="connectButton" class="bg-amber-500 hover:bg-amber-600 text-zinc-900 font-bold py-2 px-4 rounded-md transition-colors">
+                        <i class="fa-solid fa-wallet mr-2"></i>Connect Wallet
+                    </button>
+                    <div id="userInfo" class="hidden items-center gap-3">
+                         <span id="userBalanceEl" class="font-bold text-md text-amber-400">-- $BKC</span>
+                         <span id="walletAddressEl" class="font-mono bg-zinc-900/50 text-zinc-400 text-sm py-2 px-3 rounded-md"></span>
+                         <button id="disconnectButton" title="Disconnect" class="h-9 w-9 bg-zinc-700 hover:bg-red-500/80 text-zinc-400 hover:text-white rounded-md transition-colors">
+                            <i class="fa-solid fa-power-off"></i>
+                         </button>
+                     </div>
+                </div>
+            </header>
+            <main class="flex-1 overflow-y-auto bg-main p-4 sm:p-6 lg:p-8">
+                <div class="container mx-auto max-w-7xl">
+                    
+                    <section id="dashboard">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-8">
+                            <div class="bg-sidebar border border-border-color rounded-xl p-4 flex items-center gap-4 col-span-full lg:col-span-1">
+                                <i class="fa-solid fa-coins text-2xl text-cyan-400 w-8 text-center"></i> 
+                                <div><p class="text-zinc-400 text-sm">Total Supply</p><p id="statTotalSupply" class="text-xl font-bold mt-1">--</p></div>
+                            </div>
+                            <div class="bg-sidebar border border-border-color rounded-xl p-4 flex items-center gap-4">
+                                <i class="fa-solid fa-users text-2xl text-green-400 w-8 text-center"></i>
+                                <div><p class="text-zinc-400 text-sm">Validators</p><p id="statValidators" class="text-xl font-bold mt-1">--</p></div>
+                            </div>
+                            <div class="bg-sidebar border border-border-color rounded-xl p-4 flex items-center gap-4">
+                                <i class="fa-solid fa-shield-halved text-2xl text-purple-400 w-8 text-center"></i>
+                                <div><p class="text-zinc-400 text-sm">Network pStake</p><p id="statTotalPStake" class="text-xl font-bold mt-1">--</p></div>
+                            </div>
+                            <div class="bg-sidebar border border-border-color rounded-xl p-4 flex items-center gap-4">
+                                <i class="fa-solid fa-vault text-2xl text-cyan-400 w-8 text-center"></i>
+                                <div><p class="text-zinc-400 text-sm">Total Locked %</p><p id="statLockedPercentage" class="text-xl font-bold mt-1">--</p></div>
+                            </div>
+                            <div class="bg-sidebar border border-border-color rounded-xl p-4 flex items-center gap-4">
+                                <i class="fa-solid fa-fire text-2xl text-amber-400 w-8 text-center"></i>
+                                <div><p class="text-zinc-400 text-sm">Scarcity Rate</p><p id="statScarcity" class="text-xl font-bold mt-1">--</p></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col xl:flex-row gap-8">
+                            <div class="w-full xl:w-1/2 flex flex-col gap-8">
+                                <div class="bg-sidebar border border-border-color rounded-xl p-6 h-full flex flex-col">
+                                    <h2 class="text-xl font-bold mb-4">My Position</h2>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+                                        <div class="bg-main border border-border-color rounded-xl p-5">
+                                            <p class="text-zinc-400 text-sm">Your Total pStake</p><p id="statUserPStake" class="text-3xl font-bold mt-1 text-purple-400">--</p>
+                                        </div>
+                                        <div class="bg-main border border-border-color rounded-xl p-5">
+                                            <p class="text-zinc-400 text-sm">Claimable Rewards</p>
+                                            <div class="flex justify-between items-end mt-1">
+                                                <p id="statUserRewards" class="text-3xl font-bold text-amber-400">--</p>
+                                                <button id="dashboardClaimBtn" class="bg-amber-500 hover:bg-amber-600 text-zinc-900 font-bold py-1 px-3 rounded-md text-sm transition-opacity opacity-0 btn-disabled" disabled><i class="fa-solid fa-gift"></i> Claim</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="reward-efficiency-panel" class="mb-6"></div>
+                                    <div id="my-certificates-dashboard" class="hidden mb-6">
+                                        <h3 class="text-lg font-bold mb-3">Recent Certificates</h3><div id="my-certificates-list" class="space-y-3"></div>
+                                    </div>
+                                    <div id="my-delegations-dashboard" class="hidden">
+                                        <h3 class="text-lg font-bold mb-3">Active Delegations</h3><div id="my-delegations-list" class="space-y-4"></div>
+                                    </div>
+                                </div>
+                                <div id="activity-history-dashboard" class="hidden">
+                                    <h3 class="text-lg font-bold mb-4">Recent Activity</h3><div id="activity-history-list-container"></div>
+                                </div>
+                            </div>
+                            <div id="top-validators-dashboard" class="w-full xl:w-1/2">
+                                <div class="bg-sidebar border border-border-color rounded-xl p-6 h-full">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-xl font-bold">Network Validators</h3><p class="text-sm text-zinc-400">Sorted by lowest pStake</p>
+                                    </div>
+                                    <div id="top-validators-list" class="space-y-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="earn" class="hidden">
+                        <h1 class="text-2xl md:text-3xl font-bold mb-6">Earn Rewards</h1>
+                        <div class="border-b border-border-color mb-6">
+                            <nav id="earn-tabs" class="-mb-px flex gap-6">
+                                <button class="tab-btn active" data-target="delegate-tab">Delegate (pStake)</button>
+                                <button class="tab-btn" data-target="distribute-tab" id="pop-mining-tab" style="display: none;">PoP Mining</button>
+                                <button class="tab-btn" data-target="validator-tab" id="validator-section-tab" style="display: none;">Become a Validator</button>
+                            </nav>
+                        </div>
+                        <div id="delegate-tab" class="tab-content active"><div id="validatorsList" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div></div>
+                        <div id="distribute-tab" class="tab-content"><div id="pop-mining-content" class="bg-sidebar border border-border-color rounded-xl max-w-3xl mx-auto overflow-hidden"></div></div>
+                        <div id="validator-tab" class="tab-content"><div id="validator-content-wrapper" class="max-w-3xl mx-auto"></div></div>
+                    </section>
+                    
+                    <section id="store" class="hidden">
+                        <h1 class="text-2xl md:text-3xl font-bold mb-6">Reward Booster Store</h1>
+                        <p class="text-zinc-400 max-w-3xl mb-8">Increase your reward claim efficiency from a 50% base up to 100% by purchasing a Booster NFT. Prices are dynamic and increase as NFTs are sold.</p>
+                        <div id="store-content-wrapper">
+                            <h2 class="text-xl font-bold mb-4">Booster Pools</h2>
+                            <div id="store-items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                            <div class="mt-12">
+                                <h2 class="text-xl font-bold mb-4">My Locked & Ineligible Boosters</h2>
+                                <div id="my-locked-boosters-container"></div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <section id="rewards" class="hidden">
+                        <h1 class="text-2xl md:text-3xl font-bold mb-6">My Rewards & Certificates</h1>
+                        <div id="claimable-rewards-panel" class="mb-8 p-6 bg-sidebar border border-border-color rounded-xl max-w-2xl mx-auto">
+                            <h2 class="text-xl font-bold mb-4">Claimable Rewards</h2>
+                            <div id="rewards-loader" class="text-center hidden"><div class="loader inline-block"></div></div>
+                            <div id="rewards-details-content"></div>
+                        </div>
+                        <h2 class="text-xl font-bold mb-4">My Vesting Certificates</h2>
+                        <div id="certificates-list-container"></div>
+                    </section>
+
+                    <section id="actions" class="hidden">
+                         <h1 class="text-2xl md:text-3xl font-bold mb-6">Decentralized Actions & Lottery</h1>
+                         <div class="flex justify-between items-center p-4 bg-sidebar border border-border-color rounded-xl mb-6">
+                            <p class="text-zinc-400">Min Creator Stake: <span id="minCreatorStakeDisplay" class="font-bold text-amber-400">--</span> $BKC</p>
+                            <button id="openCreateActionModalBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
+                                <i class="fa-solid fa-plus mr-2"></i>Create New Action
+                            </button>
+                         </div>
+                         <div id="actions-list-container"></div>
+                    </section>
+                    
+                    <section id="about" class="hidden"></section>
+
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="modal-container"></div>
+    
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
